@@ -10,7 +10,7 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css' rel='stylesheet' />
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
     <!-- Turf.js -->
     <script src='https://unpkg.com/@turf/turf@7.2.0/turf.min.js'></script>
 </head>
@@ -20,7 +20,25 @@
     <!-- MAP CONTAINER -->
     <div id='map' class='map'></div>
 
-    <script src="script.js"></script>
+    <!-- Add layer toggle functionality -->
+    <div id="layer_toggle">
+        <h4 class="text-center"> Display Layers </h4>
+        <label>
+            <input type="checkbox" value="collision-hex-polygon" onchange="toggleLayer(value)" checked>
+            Hex Grid
+        </label><br>
+        <label>
+            <input type="checkbox" value="tor-collision-point" onchange="toggleLayer(value)" checked>
+            Collision Points
+        </label><br>
+    </div>
+
+    <!-- Add legend -->
+    <div id='legend' class='legend'>
+        <h3 class="legend-title" id="legend-title">Number of Road Collisions</h3>
+    </div>
+
+    <script src="js/script.js"></script>
 
 </body>
 

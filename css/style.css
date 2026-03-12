@@ -1,0 +1,46 @@
+/* map styling and positioning */
+.map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+/* legend styling and positioning */
+.legend {
+    position: absolute;
+    background-color: #fff;
+    border-radius: 8px;
+    bottom: 0;
+    margin-bottom: 30px;
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    padding: 10px;
+    right: 10px;
+    z-index: 1;
+    opacity: 0.8;
+}
+.legend-colrect {
+    display: inline-block;
+    height: 10px;
+    width: 10px;
+    margin-right: 5px;
+    background-color: var(--legendcolor);
+}
+
+/* layer toggle UI styling and positioning */
+#layer_toggle
+{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding-right: 10px;
+    padding-left: 10px;
+    background-color: #fff;
+    z-index: 10;
+    opacity: 0.8;
+    font-size: 14px;
+    font-family: Helvetica Neue, sans-serif, serif;
+    border-radius: 8px;
+}
