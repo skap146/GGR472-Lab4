@@ -34,7 +34,7 @@ Step 2: VIEW GEOJSON POINT DATA ON MAP
 
 // Set up data for classification scheme and legend
 let color_scheme = ['#B8B8B8', '#F1959B', '#F07470', '#DC1C13']
-let collision_legend_data = [
+let collision_legend_data_all = [
     {'label': '0', 'colour': color_scheme[0]},
     {'label': '1-3', 'colour': color_scheme[1]},
     {'label': '4-11', 'colour': color_scheme[2]},
@@ -54,6 +54,16 @@ let collision_legend_data_fatal = [
 let quantiles_all = [1, 4, 11]
 let quantiles_alcohol = [1, 2, 4]
 let quantiles_fatal = [1, 2, 4]
+
+// Initialize initial step color hierachy
+const default_classification_scheme =  [
+    'step', // STEP expression produces stepped results based on value pairs
+    ['get', 'count'], // GET expression retrieves property value from 'capacity' data field
+    color_scheme[0], // Colour assigned to any values < first step
+    quantiles_all[0], color_scheme[1], // Colours assigned to values >= each step
+    quantiles_all[1], color_scheme[2],
+    quantiles_all[2], color_scheme[3]
+]
 
 // Initialize collision points variable and fetch the collision data
 let collision_points = []
@@ -116,14 +126,7 @@ map.on('load', () => {
         'type': 'fill',
         'source': 'collision-hex-grid',
         'paint': {
-            'fill-color': [
-                'step', // STEP expression produces stepped results based on value pairs
-                ['get', 'count'], // GET expression retrieves property value from 'capacity' data field
-                color_scheme[0], // Colour assigned to any values < first step
-                quantiles_all[0], color_scheme[1], // Colours assigned to values >= each step
-                quantiles_all[1], color_scheme[2],
-                quantiles_all[2], color_scheme[3]
-            ],
+            'fill-color': default_classification_scheme,
             'fill-opacity': 1,
             'fill-outline-color': 'black'
         }
@@ -174,8 +177,8 @@ map.on('load', () => {
 //
 
 // Generate a legend for our chloropleth map
-updateLegend(collision_legend_data);
-function updateLegend(legend_data) {
+initLegend(collision_legend_data_all);
+function initLegend(legend_data) {
     // For each array item create a row to put the label and colour in
     legend_data.forEach(({ label, colour }) => {
         const row = document.createElement('div');
@@ -237,9 +240,9 @@ function updateMap(filter) {
             'step', // STEP expression produces stepped results based on value pairs
             ['get', 'count'], // GET expression retrieves property value from 'capacity' data field
             color_scheme[0], // Colour assigned to any values < first step
-            quantiles_all[0], color_scheme[1], // Colours assigned to values >= each step
-            quantiles_all[1], color_scheme[2],
-            quantiles_all[2], color_scheme[3]
+            quantiles_fatal[0], color_scheme[1], // Colours assigned to values >= each step
+            quantiles_fatal[1], color_scheme[2],
+            quantiles_fatal[2], color_scheme[3]
         ]
         update_hex_grid(filtered_data, fatal_classification_scheme);
         legend_update(collision_legend_data_fatal, 'Fatal Road Collisions');
@@ -247,7 +250,8 @@ function updateMap(filter) {
     // This is the default case (show all collisions)
     else {
         map.setFilter('tor-collision-point', undefined);
-        legend_update(collision_legend_data_fatal, 'Road Collisions');
+        update_hex_grid(collision_points, default_classification_scheme)
+        legend_update(collision_legend_data_all, 'Road Collisions');
     }
 
     let filtered_data_for_map = {type: 'FeatureCollection', features: filtered_data};

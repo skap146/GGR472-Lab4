@@ -43,6 +43,11 @@ Click on an individual collision point to learn more about that particular colli
 If the information on the map becomes overwhelming, you can always toggle layers on or off through the "Display Layers" 
 user interface.
 
+You can also filter the map by following types of road collisions: 
+- ```All```, which shows all collisions on the map
+- ```Alcohol Involved```, which shows collisions where alcohol intoxication was a factor
+- ```Fatal```, which shows collisions that were fatal
+
 
 ---
 # Credits
