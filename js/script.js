@@ -264,6 +264,8 @@ function filter_points(filter_field, filter_value, map_filter_expr) {
     let filtered_data = collision_points.features.filter(collision =>
     {return collision.properties[filter_field] === filter_value});
 
+    console.log(filtered_data.length);
+
     // Updates the map with the filter
     map.setFilter('tor-collision-point', map_filter_expr);
 
