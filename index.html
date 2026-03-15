@@ -16,9 +16,18 @@
 </head>
 
 <body>
-
     <!-- MAP CONTAINER -->
     <div id='map' class='map'></div>
+
+    <!-- Add filtering by different types of collisions to the map -->
+    <div class="form-group">
+        <label for="month-filter" class="dropdown-title">Filter Collisions By :</label>
+        <select id="month-filter" class="form-control" onchange="updateMap(value)">
+            <option value="All">All</option>
+            <option value="Alcohol Involved">Alcohol Involved</option>
+            <option value="Fatal">Fatal</option>
+        </select>
+    </div>
 
     <!-- Add layer toggle functionality -->
     <div id="layer_toggle">
