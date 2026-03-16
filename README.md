@@ -24,8 +24,6 @@ between 2006 and 2021.
 
 Here are important files and their main purposes:
 
-```determine_classification_values.py``` - Determines the bins for each class in the choropleth hex grid map.
-
 ```index.html``` - Handles webpage structure
 
 ```script.js``` - Handles the logic for the road collision map
