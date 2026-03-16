@@ -50,19 +50,37 @@ let collision_legend_data_fatal = [
     {'label': '2-3', 'colour': color_scheme[2]},
     {'label': '4+', 'colour': color_scheme[3]}]
 
-// quantile classification schemes: values calculated with the use of Python
+// quantiles
+// values for quantiles_all calculated with the use of Python
+// since data is 0-heavy for alcohol and fatal, I just used reasonable breaks here
 let quantiles_all = [1, 4, 11]
 let quantiles_alcohol = [1, 2, 4]
 let quantiles_fatal = [1, 2, 4]
 
-// Initialize initial step color hierachy
+// all classification schemes (default, alcohol, and fatal)
 const default_classification_scheme =  [
-    'step', // STEP expression produces stepped results based on value pairs
-    ['get', 'count'], // GET expression retrieves property value from 'capacity' data field
-    color_scheme[0], // Colour assigned to any values < first step
-    quantiles_all[0], color_scheme[1], // Colours assigned to values >= each step
+    'step',
+    ['get', 'count'],
+    color_scheme[0],
+    quantiles_all[0], color_scheme[1],
     quantiles_all[1], color_scheme[2],
     quantiles_all[2], color_scheme[3]
+]
+const alcohol_classification_scheme =  [
+    'step',
+    ['get', 'count'],
+    color_scheme[0],
+    quantiles_alcohol[0], color_scheme[1],
+    quantiles_alcohol[1], color_scheme[2],
+    quantiles_alcohol[2], color_scheme[3]
+]
+const fatal_classification_scheme =  [
+    'step',
+    ['get', 'count'],
+    color_scheme[0],
+    quantiles_fatal[0], color_scheme[1],
+    quantiles_fatal[1], color_scheme[2],
+    quantiles_fatal[2], color_scheme[3]
 ]
 
 // Initialize collision points variable and fetch the collision data
@@ -73,7 +91,8 @@ fetch(file_url).then(response => {
     return response.json();
 }).then(data => {collision_points = data})
 
-map.on('load', () => {
+map.on('load', () =>
+{
     // Let's display these collision features on the map.
     map.addSource('tor-collision-data', {type: 'geojson', data: file_url});
     map.addLayer({'id': 'tor-collision-point',
@@ -97,29 +116,14 @@ map.on('load', () => {
 
     // "aggregate" all collisions within each hexagon
     let collisions_in_hex = turf.collect(hexgrid, collision_points, "_id", "values");
-    console.log(collisions_in_hex);
-
-    // store the max amount of collisions
-    let maxCollisions = 0;
-
-    // array of counts
-    let counts_arr = []
 
     // iterate through the collisions in each hexagon
     collisions_in_hex.features.forEach(collision => {
         // counts number of collisions in each hexagon
-        delete collision.properties.count;
         collision.properties.count = collision.properties.values.length;
-        counts_arr.push(collision.properties.count)
-        // updates the max if number of collisions in the current hexagon > current value
-        // of max collisions
-        if (collision.properties.count > maxCollisions) {
-            maxCollisions = collision.properties.count;
-        }
     })
 
-    counts_arr.sort(function (a, b) {return a - b})
-
+    // Add the hex grid to the map
     map.addSource('collision-hex-grid', {type: 'geojson', data: hexgrid});
     map.addLayer({
         'id': 'collision-hex-polygon',
@@ -132,7 +136,7 @@ map.on('load', () => {
         }
     });
 
-    // Create pop ups for collision hexagons
+    // Create pop-ups for collision hexagons
     map.addInteraction('hex-grid-interaction', {
         type: 'click',
         target: {'layerId': 'collision-hex-polygon'},
@@ -147,7 +151,7 @@ map.on('load', () => {
         }
     })
 
-    // Create pop ups for collision points
+    // Create pop-ups for collision points
     map.addInteraction('tor-collision-interaction', {
         type: 'click',
         target: {'layerId': 'tor-collision-point'},
@@ -174,11 +178,11 @@ map.on('load', () => {
     })
 })
 
-//
-
-// Generate a legend for our chloropleth map
+// Generate a legend for our choropleth map
+// This is different from update legend since we are creating our legend elements from scratch in this function.
 initLegend(collision_legend_data_all);
-function initLegend(legend_data) {
+function initLegend(legend_data)
+{
     // For each array item create a row to put the label and colour in
     legend_data.forEach(({ label, colour }) => {
         const row = document.createElement('div');
@@ -200,6 +204,7 @@ function initLegend(legend_data) {
 // React to checkbox being enabled/disabled on map
 function toggleLayer(layer_id)
 {
+    // Retrieve the layer's current visibility
     const visibility = map.getLayoutProperty(layer_id, 'visibility');
 
     // Toggle the visibility of the layer
@@ -213,37 +218,22 @@ function toggleLayer(layer_id)
     }
 }
 
-// updates the map based on current filter
+// Updates the map based on current filter
+// This function is called whenever the user decides to change the filtered data
 function updateMap(filter) {
-    console.log(filter);
+
     // Initialize filtered data array
     let filtered_data = []
 
     if (filter === 'Alcohol Involved') {
         // Only keep the collisions where alcohol was involved
         filtered_data = filter_points('ALCOHOL', 'Yes',  ['==', ['get', 'ALCOHOL'], 'Yes']);
-        let alcohol_classification_scheme = [
-            'step', // STEP expression produces stepped results based on value pairs
-            ['get', 'count'], // GET expression retrieves property value from 'capacity' data field
-            color_scheme[0], // Colour assigned to any values < first step
-            quantiles_alcohol[0], color_scheme[1], // Colours assigned to values >= each step
-            quantiles_alcohol[1], color_scheme[2],
-            quantiles_alcohol[2], color_scheme[3]
-        ]
         update_hex_grid(filtered_data, alcohol_classification_scheme);
         legend_update(collision_legend_data_alcohol, 'Alcohol-Induced Road Collisions');
     }
     else if (filter === 'Fatal') {
         // Only keep the collisions that were fatal
         filtered_data = filter_points('ACCLASS', 'Fatal', ['==', ['get', 'ACCLASS'], 'Fatal']);
-        let fatal_classification_scheme = [
-            'step', // STEP expression produces stepped results based on value pairs
-            ['get', 'count'], // GET expression retrieves property value from 'capacity' data field
-            color_scheme[0], // Colour assigned to any values < first step
-            quantiles_fatal[0], color_scheme[1], // Colours assigned to values >= each step
-            quantiles_fatal[1], color_scheme[2],
-            quantiles_fatal[2], color_scheme[3]
-        ]
         update_hex_grid(filtered_data, fatal_classification_scheme);
         legend_update(collision_legend_data_fatal, 'Fatal Road Collisions');
     }
@@ -253,9 +243,6 @@ function updateMap(filter) {
         update_hex_grid(collision_points, default_classification_scheme)
         legend_update(collision_legend_data_all, 'Road Collisions');
     }
-
-    let filtered_data_for_map = {type: 'FeatureCollection', features: filtered_data};
-    console.log(filtered_data_for_map);
 }
 // Filter collision points on the map based on user selection and returns the filtered data
 function filter_points(filter_field, filter_value, map_filter_expr) {
@@ -264,52 +251,42 @@ function filter_points(filter_field, filter_value, map_filter_expr) {
     let filtered_data = collision_points.features.filter(collision =>
     {return collision.properties[filter_field] === filter_value});
 
-    console.log(filtered_data.length);
-
     // Updates the map with the filter
     map.setFilter('tor-collision-point', map_filter_expr);
 
-    // Return filtered data as GEOJSON obkect
+    // Return filtered data as GEOJSON object (used in the update_hex_grid function)
     return {type: 'FeatureCollection', features: filtered_data};
 }
 
-// Update the hex grid
+// Update the hex grid based on the filtered data
 function update_hex_grid(filtered_data, classification_scheme) {
-    // "aggregate" all collisions within each hexagon
-    // console.log('Filtered data for hex grid: ', filtered_data);
-    let updated_collisions_in_hex = turf.collect(hexgrid, filtered_data, "_id", "values");
 
-    // store the max amount of collisions
-    let maxCollisions = 0;
+    // "aggregate" all collisions within each hexagon
+    let updated_collisions_in_hex = turf.collect(hexgrid, filtered_data, "_id", "values");
 
     // iterate through the collisions in each hexagon
     updated_collisions_in_hex.features.forEach(collision => {
         // counts number of collisions in each hexagon
         collision.properties.count = collision.properties.values.length;
-        // updates the max if number of collisions in the current hexagon > current value
-        // of max collisions
-        if (collision.properties.count > maxCollisions) {
-            maxCollisions = collision.properties.count;
-        }
 })
+    // update the colors of the hex grid based on the new classification scheme
     map.setPaintProperty('collision-hex-polygon', 'fill-color', classification_scheme);
     map.getSource('collision-hex-grid').setData(updated_collisions_in_hex);
 }
 // This dynamically updates legend based on current classification scheme
+// Since the color scheme is universal, we only need to change the text labels for the legend elements this time.
 function legend_update(legend_items, title) {
     // Update the legend title
     legend_title = document.getElementById("legend-title");
     legend_title.textContent = title;
 
     // Retrieve current legend data
-    const legend_rows = document.querySelectorAll('.legend-colrect');
     const text_rows = document.querySelectorAll('.legend-text')
-    console.log(legend_rows);
     console.log(text_rows);
 
     let index = 0;
 
-    legend_items.forEach(({label, color}) => {
+    legend_items.forEach(({label}) => {
         // Update text elements only, color scheme is universal
         let text_row = text_rows[index]
 
@@ -318,36 +295,3 @@ function legend_update(legend_items, title) {
         index++;
     })
 }
-
-
-/*--------------------------------------------------------------------
-    Step 3: CREATE BOUNDING BOX AND HEXGRID
---------------------------------------------------------------------*/
-//HINT: All code to create and view the hexgrid will go inside a map load event handler
-//      First create a bounding box around the collision point data
-//      Access and store the bounding box coordinates as an array variable
-//      Use bounding box coordinates as argument in the turf hexgrid function
-//      **Option: You may want to consider how to increase the size of your bbox to enable greater geog coverage of your hexgrid
-//                Consider return types from different turf functions and required argument types carefully here
-
-
-
-/*--------------------------------------------------------------------
-Step 4: AGGREGATE COLLISIONS BY HEXGRID
---------------------------------------------------------------------*/
-//HINT: Use Turf collect function to collect all '_id' properties from the collision points data for each heaxagon
-//      View the collect output in the console. Where there are no intersecting points in polygons, arrays will be empty
-
-
-
-// /*--------------------------------------------------------------------
-// Step 5: FINALIZE YOUR WEB MAP
-// --------------------------------------------------------------------*/
-//HINT: Think about the display of your data and usability of your web map.
-//      Update the addlayer paint properties for your hexgrid using:
-//        - an expression
-//        - The COUNT attribute
-//        - The maximum number of collisions found in a hexagon
-//      Add a legend and additional functionality including pop-up windows
-
-
