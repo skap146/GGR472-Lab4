@@ -24,8 +24,17 @@
     <!-- MAP CONTAINER -->
     <div id='map' class='map'></div>
 
+    <!-- Add a change hexagon size menu for fun! -->
+    <div class="form-group hex-size">
+        <label for="hex-size-toggle" class="dropdown-title">Hexagon Size:</label>
+        <select id="hex-size-toggle" class="form-control" onchange="changeHexSize(value)">
+            <option value="Medium">Medium (500m)</option>
+            <option value="Large">LARGE (1000m)</option>
+        </select>
+    </div>
+
     <!-- Add filtering by different types of collisions to the map -->
-    <div class="form-group">
+    <div class="form-group filter">
         <label for="month-filter" class="dropdown-title">Filter Collisions By :</label>
         <select id="month-filter" class="form-control" onchange="updateMap(value)">
             <option value="All">All</option>

@@ -25,7 +25,7 @@
     background-color: #fff;
     border-radius: 8px;
     bottom: 0;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
     padding: 10px;
     right: 10px;
@@ -45,7 +45,7 @@
 {
     position: absolute;
     margin: auto;
-    bottom: 260px;
+    bottom: 280px;
     right: 10px;
     padding: 10px;
     background-color: #fff;
@@ -56,10 +56,21 @@
     border-radius: 8px;
 }
 
-/* filter dropdown styling and positioning */
-.form-group {
+/* filter dropdowns styling and positioning */
+.form-group.filter {
     position: absolute;
-    bottom: 200px;
+    bottom: 180px;
+    right: 10px;
+    z-index: 10;
+    opacity: 0.8;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff;
+    font-family: Helvetica Neue, sans-serif, serif;
+}
+.form-group.hex-size {
+    position: absolute;
+    bottom: 230px;
     right: 10px;
     z-index: 10;
     opacity: 0.8;

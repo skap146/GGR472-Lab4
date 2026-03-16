@@ -49,6 +49,20 @@ You can also filter the map by following types of road collisions:
 - ```Fatal```, which shows collisions that were fatal
 
 
+### Bonus Feature! Fun with MAUP
+
+The MAUP (Modifiable Areal Unit Problem) describes how the results of 
+data aggregation into subdivisions can change based on the size and shape of the subdivision.
+Inspired by MAUP, I created a hex size dropdown that lets one choose between ```Medium``` and
+```Large``` hexagons. The ```Large``` hexagons have sides of 1000m in length whereas the medium 
+hexagons have sides of 500m in length. The pictures below show how widely different the hex grid looks when
+you change only one variable, the size of the hexagonal subdivisions:
+
+![Medium Hex Example](img/normal_hex.png)
+![Large Hex Example](img/large_hex.png)
+
+
+
 ---
 # Credits
 

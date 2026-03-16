@@ -58,6 +58,7 @@ let quantiles_alcohol = [1, 2, 4]
 let quantiles_fatal = [1, 2, 4]
 
 // all classification schemes (default, alcohol, and fatal)
+// we also store the current one, which is simply initialized to the default setting
 const default_classification_scheme =  [
     'step',
     ['get', 'count'],
@@ -82,10 +83,18 @@ const fatal_classification_scheme =  [
     quantiles_fatal[1], color_scheme[2],
     quantiles_fatal[2], color_scheme[3]
 ]
+let curr_classification_scheme = default_classification_scheme
+
 
 // Initialize collision points variable and fetch the collision data
 let collision_points = []
 const file_url = 'data/pedcyc_collision_06-21.geojson'
+
+// Global variable to represent curr_data being displayed on the map
+let curr_data= []
+
+// Initialize our bounding coords (we'll need it again for the hex grid size function)
+let bounding_coords = []
 
 fetch(file_url).then(response => {
     return response.json();
@@ -100,22 +109,25 @@ map.on('load', () =>
         'source': 'tor-collision-data',
     'paint': {'circle-radius': 5, 'circle-color': '#000000'}})
 
-    // Create the bounding box
-    let env_result = turf.envelope(collision_points);
+    // Set the current data to all of the collision points (this can change due to filtering)
+    curr_data = collision_points;
+
+    // Create the bounding box and coords
+    let env_result = turf.envelope(curr_data);
     let bounding_box = turf.transformScale(env_result, 1.1);
-    let bounding_coords =
+    bounding_coords =
         [bounding_box.geometry.coordinates[0][0][0],
             bounding_box.geometry.coordinates[0][0][1],
             bounding_box.geometry.coordinates[0][2][0],
             bounding_box.geometry.coordinates[0][2][1]]
 
     // Use the bounding box to create hex grid
-    let hexSide = 1000;
+    let hexSide = 500;
     let options = {units: 'metres'}
     hexgrid = turf.hexGrid(bounding_coords, hexSide, options);
 
     // "aggregate" all collisions within each hexagon
-    let collisions_in_hex = turf.collect(hexgrid, collision_points, "_id", "values");
+    let collisions_in_hex = turf.collect(hexgrid, curr_data, "_id", "values");
 
     // iterate through the collisions in each hexagon
     collisions_in_hex.features.forEach(collision => {
@@ -220,27 +232,28 @@ function toggleLayer(layer_id)
 
 // Updates the map based on current filter
 // This function is called whenever the user decides to change the filtered data
+// It changes the value of the global variable curr_data to match the current filtered data
 function updateMap(filter) {
-
-    // Initialize filtered data array
-    let filtered_data = []
 
     if (filter === 'Alcohol Involved') {
         // Only keep the collisions where alcohol was involved
-        filtered_data = filter_points('ALCOHOL', 'Yes',  ['==', ['get', 'ALCOHOL'], 'Yes']);
-        update_hex_grid(filtered_data, alcohol_classification_scheme);
+        curr_data = filter_points('ALCOHOL', 'Yes',  ['==', ['get', 'ALCOHOL'], 'Yes']);
+        curr_classification_scheme = alcohol_classification_scheme
+        update_hex_grid(curr_data, curr_classification_scheme);
         legend_update(collision_legend_data_alcohol, 'Alcohol-Induced Road Collisions');
     }
     else if (filter === 'Fatal') {
         // Only keep the collisions that were fatal
-        filtered_data = filter_points('ACCLASS', 'Fatal', ['==', ['get', 'ACCLASS'], 'Fatal']);
-        update_hex_grid(filtered_data, fatal_classification_scheme);
+        curr_data = filter_points('ACCLASS', 'Fatal', ['==', ['get', 'ACCLASS'], 'Fatal']);
+        curr_classification_scheme = fatal_classification_scheme
+        update_hex_grid(curr_data, curr_classification_scheme);
         legend_update(collision_legend_data_fatal, 'Fatal Road Collisions');
     }
     // This is the default case (show all collisions)
     else {
         map.setFilter('tor-collision-point', undefined);
-        update_hex_grid(collision_points, default_classification_scheme)
+        curr_classification_scheme = default_classification_scheme
+        update_hex_grid(collision_points, curr_classification_scheme)
         legend_update(collision_legend_data_all, 'Road Collisions');
     }
 }
@@ -294,4 +307,25 @@ function legend_update(legend_items, title) {
 
         index++;
     })
+}
+
+// a fun function
+// this changes the size of the hexagons on the hex grid
+// a real life representation of MAUP!!!
+function changeHexSize(size) {
+    // only two sizes, large and medium
+    // medium is default, so it will be the default case in this function
+    let hex_side = null;
+    if (size === 'Large') {
+        hex_side = 1000;
+    }
+    else {
+        hex_side = 500;
+    }
+
+    // call update hex grid
+    // remember only the grid changes, everything else is the same
+    let options = {units: 'metres'}
+    hexgrid = turf.hexGrid(bounding_coords, hex_side, options);
+    update_hex_grid(curr_data, curr_classification_scheme);
 }
